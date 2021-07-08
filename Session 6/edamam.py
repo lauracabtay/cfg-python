@@ -1,4 +1,5 @@
 import requests
+import time
 
 # API call function
 def ingredient_search(ingredient):
@@ -18,45 +19,84 @@ def recipe():
     # Getting user input for ingredient
     ingredient = input('Enter an ingredient: ')
 
+    print('Let\'s look for some {} recipes!'.format(ingredient))
+    time.sleep(2)
+
+    # Ask user for number of max calories
+    calories_filter = int(input('\nWhat is the maximum number of calories you would like the recipe to have? '))
+
+    if calories_filter <= 500:
+        print('That\'s healthy! Here are some {} recipes for under {} calories.'.format(ingredient, calories_filter))
+    else:
+        print('Need a bit of comfort? Here are {} recipes for under {} calories.'.format(ingredient, calories_filter))
+    time.sleep(2)
+
+    # Ask user for cuisine type
+    cuisineType = input('\nWhat type of cuisine would you like? ').lower()
+
+    if cuisineType == 'french':
+        print('French cuisine! Bon appetit!')
+    if cuisineType == 'italian':
+        print('We have amazing italian recipes to show you pronto!')
+    else:
+        print('Let\'s have a look at some {} recipes.'.format(cuisineType))
+    time.sleep(2)
+
     # API call assigned to a variable
     recipes = ingredient_search(ingredient)
     line_break = '\n'
 
-    # Iterating through each recipe to get recipe name and url, using the API call variable
-    for recipe in recipes:
+    with open('recipes.txt', 'w+') as recipe_book:
 
-        # Display recipe name
-        recipe_label = recipe['recipe']['label'].upper()
-        print(recipe_label)
+        # Iterating through each recipe to get recipe name and url, using the API call variable
 
-        # Add recipe name to text file
-        with open('recipes.txt', 'a+') as recipe_book:
-            recipe_book.write(recipe_label + line_break)
+        for recipe in recipes:
 
-        # Display recipe url
-        recipe_url = recipe['recipe']['url']
-        print(recipe_url)
+            recipe_calories = int(recipe['recipe']['calories'])
+            recipe_cuisineType = recipe['recipe']['cuisineType']
+            i = 0
+            while i < len(recipe_cuisineType):
+                if cuisineType == recipe_cuisineType[i] and recipe_calories <= calories_filter:
+                    # Display recipe name
+                    recipe_label = recipe['recipe']['label'].upper()
+                    print(line_break + recipe_label)
 
-        # Add recipe url to text file
-        with open('recipes.txt', 'a+') as recipe_book:
-            recipe_book.write(recipe_url + line_break)
+                    # Add recipe name to text file
+                    recipe_book.write(recipe_label + line_break)
 
-        # Iterating through each recipe's ingredients to get one ingredient by line
-        ingredients = recipe['recipe']
-        ingredientLine = ingredients['ingredients']
+                    # Display recipe calories
+                    print(recipe_calories, 'calories')
 
-        for ingredient in ingredientLine:
-            # Display recipe ingredients
-            recipe_ingredients = ingredient['text']
-            print(recipe_ingredients)
+                    # Add recipe calories to text file
+                    recipe_book.write(str(recipe_calories) + line_break)
 
-            # Add recipe ingredients to text file
-            with open('recipes.txt', 'a+') as recipe_book:
-                recipe_book.write(recipe_ingredients + line_break)
+                    # Display recipe cuisine
+                    print(recipe_cuisineType[i], 'cuisine')
 
-        print(line_break)
-        with open('recipes.txt', 'a+') as recipe_book:
-            recipe_book.write(line_break)
+                    # Add recipe calories to text file
+                    recipe_book.write(recipe_cuisineType[i] + ' cuisine' + line_break)
+
+                    # Display recipe url
+                    recipe_url = recipe['recipe']['url']
+                    print(recipe_url)
+
+                    # Add recipe url to text file
+                    recipe_book.write(recipe_url + line_break)
+
+                    # Retrieve recipe ingredients
+                    ingredients = recipe['recipe']
+                    ingredientLine = ingredients['ingredients']
+
+                    # Iterating through each recipe's ingredients to get one ingredient by line
+                    for ingredient in ingredientLine:
+
+                        # Display recipe ingredients
+                        recipe_ingredients = ingredient['text']
+                        print(recipe_ingredients)
+
+                        # Add recipe ingredients to text file
+                        recipe_book.write(recipe_ingredients + line_break)
+                i += 1
 
 # Call recipe function
 recipe()
